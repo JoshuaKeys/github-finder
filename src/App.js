@@ -1,18 +1,18 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import './App.css';
 import axios from 'axios';
 import Users from './components/users/Users';
 import Search from './components/users/Search';
-import PropTypes from 'prop-types';
+import { Alert } from './components/layout/Alert';
+import { About } from './components/pages/About';
 
 class App extends Component {
   state = {
     users: [],
     loading: false,
-  };
-  static propTypes = {
-    searchUsers: PropTypes.func.isRequired,
+    alert: null,
   };
   searchUsers = async (text) => {
     this.setState({ loading: true });
@@ -26,15 +26,46 @@ class App extends Component {
     this.setState({ users: [], loading: false });
   };
 
+  setAlert = (msg, type) => {
+    this.setState({ alert: { msg, type } });
+    setTimeout(
+      () =>
+        this.setState({
+          alert: null,
+        }),
+      5000
+    );
+  };
+
   render() {
+    const { users, loading } = this.state;
     return (
-      <div>
-        <Navbar />
-        <div className='container'>
-          <Search clearUsers={this.clearUsers} searchUsers={this.searchUsers} />
-          <Users loading={this.state.loading} users={this.state.users} />
+      <Router>
+        <div className='App'>
+          <Navbar />
+          <div className='container'>
+            <Alert alert={this.state.alert} />
+            <Switch>
+              <Route
+                path='/'
+                exact
+                render={(props) => (
+                  <Fragment>
+                    <Search
+                      showClear={users.length > 0}
+                      clearUsers={this.clearUsers}
+                      searchUsers={this.searchUsers}
+                      setAlert={this.setAlert}
+                    />
+                    <Users loading={loading} users={users} />
+                  </Fragment>
+                )}
+              />
+              <Route path='/about' exact component={About} />
+            </Switch>
+          </div>
         </div>
-      </div>
+      </Router>
     );
   }
 }
